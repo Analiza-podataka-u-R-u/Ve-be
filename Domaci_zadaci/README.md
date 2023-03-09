@@ -1,7 +1,7 @@
 # Analiza podataka u R-u 2023
 
 **Naslov:** Domaći zadaci   
-**Opis:** Direktorijum sadrzi domaće zadatke iz predemeta Analiza podatak u R-u        
+**Opis:** Direktorijum sadrži domaće zadatke iz predemeta Analiza podataka u R-u        
 **Autori:** Milutin Pejović i Petar Bursać
 
 ![Logo GRF](www/figures/logo_grf.png)
@@ -27,7 +27,7 @@ Vežbe su saglasne sa predavanjima za tekuću nedelju i dat je sledeći plan i r
 
 ### Predaja domaćih zadataka
 
--   Rešenje domaćeg zadatka predata u kao R fajl - skriptu.
+-   Rešenje domaćeg zadatka predati kao R fajl - skriptu.
 -   U zaglavlju napisati ime, prezime, broj indeksa, datum i redni broj vežbe
 -   Ime R fajla konstruisati kao: **Ime_Prezime_Domaci_Zadatak_br_X.R**
 
