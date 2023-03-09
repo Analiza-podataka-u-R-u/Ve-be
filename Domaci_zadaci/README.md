@@ -15,7 +15,7 @@ U datom direkotorijumu su posatavljeni domaći zadaci za studente predmeta Anali
 
 Vežbe su saglasne sa predavanjima za tekuću nedelju i dat je sledeći plan i raspored:
 
--   Predavanja i vežbe broj 1 [09.03.2023] - Uovd u R
+-   Predavanja i vežbe broj 1 [09.03.2023] - Uvod u R
     1. Osnovno o R-u
     2. Uvod u sintaksu R programskog jezika
     3. R paketi
