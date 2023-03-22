@@ -1,15 +1,14 @@
 ---
 title: | 
-  | Gradevinski fakultet
+  | Građevinski fakultet
   | Odsek za geodeziju i geoinformatiku
   |
   | Analiza podataka u R-u
   |
-  | Uvod u R
 author: |
   | Milutin Pejović
   | Petar Bursać  
-date: "2023-3-7"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
    html_document:
      keep_md: true
@@ -19,6 +18,7 @@ output:
      toc_depth: 5
      toc_float: true
      fig_caption: yes
+     code_folding: "show"
 ---
 
 ```{r setup, include=FALSE}
@@ -317,9 +317,9 @@ here::here("data") # kreira putanju do foldera "data".
 
 ```{r}
 
-studenti <- read.table(file = here::here("data", "Students_IG1.txt"), sep = ",", header = TRUE)
+# studenti <- read.table(file = here::here("data", "Students_IG1.txt"), sep = ",", header = TRUE)
 
-studenti <- read.csv(file = here::here("data", "Students_IG1.txt"), header = TRUE, stringsAsFactors = FALSE)
+# studenti <- read.csv(file = here::here("data", "Students_IG1.txt"), header = TRUE, stringsAsFactors = FALSE)
 
 ```
 
@@ -328,16 +328,15 @@ studenti <- read.csv(file = here::here("data", "Students_IG1.txt"), header = TRU
 
 Učitavanje excel tabela je moguće učiniti putem paketa "readxl":
 
-```{r eval = FALSE}
+```{r eval = TRUE}
  
-install.packages("readxl")
+# install.packages("readxl")
 library(readxl)
 
 
-studenti <- readxl::read_xlsx(path = "C:/R_projects/Nauka_R/Slides/data/Students_IG1.xlsx", sheet = "Students")
+studenti <- readxl::read_xlsx(path = "C:/R_projects/Analiza_podataka_u_R_u/Vezbe/data/Students_IG1.xlsx", sheet = "Students")
 
 ```
-
 
 
 
@@ -635,9 +634,12 @@ Ukoliko žeilimo da svim studentima koji su upisali fakultet 2017 godine dodelim
 ```{r}
 studenti[studenti$god.upisa == 2017, "Ocena"] <- 5
 
-studenti <- read.csv(file = here::here("data", "Students_IG1.txt"), header = TRUE, stringsAsFactors = FALSE)
+# studenti <- read.csv(file = here::here("data", "Students_IG1.txt"), header = TRUE, stringsAsFactors = FALSE)
+
+studenti <- readxl::read_xlsx(path = "C:/R_projects/Analiza_podataka_u_R_u/Vezbe/data/Students_IG1.xlsx", sheet = "Students")
 
 ```
+
 
 
 > <h3>Zadatak</h3>
@@ -706,4 +708,7 @@ ig <- merge(ig1, ig2, by = c("prezime", "ime"))
 ig
 
 ```
+
+
+
 

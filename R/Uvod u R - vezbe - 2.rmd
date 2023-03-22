@@ -1,0 +1,292 @@
+---
+title: | 
+  | Građevinski fakultet
+  | Odsek za geodeziju i geoinformatiku
+  |
+  | Analiza podataka u R-u
+  |
+subtitle: | 
+  | 
+  | Kontrola toka i funkcije
+  |
+author: |
+  | Milutin Pejović
+  | Petar Bursać  
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+   html_document:
+     keep_md: true
+     theme: "simplex"
+     highlight: tango
+     toc: true
+     toc_depth: 5
+     toc_float: true
+     fig_caption: yes
+     code_folding: "show"
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, echo = TRUE, collapse = TRUE, fig.align = "center")
+
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  paste0("\n \\", "scriptsize","\n\n", x, "\n\n \\footnotesize")
+})
+```
+
+
+
+# Kontrola toka u R-u
+
+U okviru ovog predavanja upoznaćemo se sa mogućnostima kontrole toka i automatizacije izvršavanja komandi primenom komandi `if` i `for`. 
+
+```{r echo = FALSE}
+knitr::include_graphics(here::here("Figures", "loops_R.png"))
+```
+
+
+## `if` - grananje toka 
+
+Komanda `if` omogućava da postavimo uslov kojim će izvršavanje neke komande zavisiti od rezultata nekog logičkog upita. Na taj način moguće je stvoriti razgranatu strukturu toka izvršavanja komandi (algoritma). Komanda `if` se koristi na sledeći način:
+
+$$if(condition) \quad \textrm{{true_expression}} \quad elsе \quad \textrm{{false_expression}}$$ 
+
+Na primer, ukoliko promenljiva `x` sadrži numerički podatak, podeliti ga sa 2, a ukoliko je neki drugi podatak ispisati "Nije moguće izvršiti komandu jer x ne sadrži numerički podatak"
+
+
+
+```{r}
+x <- 5
+if(is.numeric(x)) x/2 else print("Nije moguće izvršiti komandu jer x ne sadrži numerički podatak")
+```
+
+```
+## [1] 2.5
+```
+
+```{r}
+x <- "a"
+if(is.numeric(x)) x/2 else print("Nije moguće izvršiti komandu jer x ne sadrži numerički podatak")
+```
+
+Ukoliko ne postoji određena operacija koja se uzvršava u slučaju `else`, nije potrebno pisati taj deo. Na primer:
+
+```{r}
+x <- 5
+if(is.numeric(x)) x/2 
+```
+
+```{r}
+x <- "a"
+if(is(x, "numeric")) x/2 
+
+```
+
+
+Međutim, pravi smisao `if` komande se vidi tek kada očekujemo da prilikom izvršavanja niza komandi računar sam odluči šta treba uraditi u određenom trenutku u zavisnosti od ulaznih parametara. 
+
+
+## Kontrola toka `else if`
+
+Kontrola toka `else if` se koristi u slučaju da postoji određena operacija koja se uzvršava u slučaju `else`
+
+```{r}
+
+y <- 12 # obratiti paznju sta se desava ako je broj 5
+
+if (y < 5) {
+  
+  print("Manje od 5")
+
+  } else if (y < 10 & y > 5) {
+
+    print("Manje od 10 i vece od 5")
+    
+} else {
+
+  print("Broj je veci od 10")
+  
+}
+
+
+```
+
+
+
+## `for` petlja
+
+`for` petlja se koristi kada želimo da automatizujemo izvršavanje neke komande ili niza komandi određeni broj puta. `for` petlja se koristi na sledeći način:
+
+$$ for(i \quad in \quad list) \quad \textrm{{expression}} $$
+
+
+```{r}
+# Kreirati vektor slučajnih brojeva normalne raspodele
+u1 <- rnorm(30)
+print("Ova petlja računa kvadrat prvih deset elemenata vektora u1.")
+
+# Inicijalizacija vektora 'kv'
+kv <- 0 
+
+for (i in 1:10) {
+    # i-ti element od `u1` kvadriran i sačuvan na `i`-tu poziciju vektora `kv`
+    kv[i] <- u1[i] * u1[i]
+    print(kv[i])
+}
+
+print(i)
+```
+
+### Ugnježdena `for` petlja
+
+Predstavlja kombinaciju dve ili više for petlji (obratiti pažnju na indekse).
+
+```{r}
+# Dodeliti broj - dimenzije matrice
+my_int <- 42
+
+nr <- as.integer(my_int)
+
+# Kreirati `n` x `n` matricu - praznu
+mymat <- matrix(0, nr, nr)
+
+# Za svaki red i za svaku kolonu, dodeliti vrednost baziranu na poziciji
+# Vrednosti su produkt dva indeksa
+for (i in 1:dim(mymat)[1]) {
+    for (j in 1:dim(mymat)[2]) {
+        mymat[i, j] = i * j
+    }
+}
+
+
+head(mymat)
+```
+
+
+## `while` petlja
+
+`while` petlja se koristi kada želimo da automatizujemo izvršavanje neke komande ili niza komandi samo u slučaju da je ispunjen određeni uslov. `while` petlja se koristi na sledeći način:
+
+$$ while \textrm{(logički uslov)} \quad \textrm{{kod koji se izvršava dok je uslov TRUE}} $$
+
+```{r}
+i <- 1
+
+while (i < 6) {
+  print(i)
+  i = i+1
+}
+
+```
+
+## Primer korišćenja for i if zajedno
+
+Na primer, ako želimo da podacima `studenti` dodamo jednu kolonu pod nazivom "ispit" u vidu logičkog vektora koji će sadržati vrednost TRUE za studente koji su položili oba ispita (IG1 i Praksu) i FALSE za one koji nisu.
+
+
+```{r}
+studenti <- read.csv(file = "C:/R_projects/Analiza_podataka_u_R_u/Vezbe/data/Students_IG1.csv", header = TRUE, stringsAsFactors = FALSE)
+
+studenti$ispit <- NA # Prvo cemo kreirati kolonu "ispit" koja ima sve NA vrednosti
+
+# Komanda dim(studenti) vraca broj dimenzija, prvi se odnosi na broj vrsta.
+dim(studenti)
+```
+
+
+```{r}
+for(i in 1:dim(studenti)[1]) { 
+  # Sekvenca `1:dim(studenti)[1]` sadrzi niz brojeva od 1 do ukupnog broja vrsta u data.frame-u studenti.
+  # i ide kroz svaku vrstu data.frame-a `studenti`
+  
+  studenti$ispit[i] <- if(is.na(studenti$Ocena[i]) | is.na(studenti$Praksa[i])){
+    FALSE
+  } else {
+      TRUE
+    }
+}  
+
+head(studenti, 15)
+```
+
+
+```{r}
+sum(studenti$ispit) # Koliko studenata je polozilo oba ispita
+```
+
+
+# Kreiranje funkcija
+
+R omogućava kreranje funkcija koje nam omogućavaju da automatizujemo određene korake u našem algoritmu. Kreiranje funkcija je poželjno u slučajevima kada imamo određeni deo koda koji je potrebno ponoviti više puta. Na taj način, umesto da kopiramo kod više puta, moguće je kreirati funkciju koja će izvršiti taj deo koda pozivanjem kreirane funkcije. Generalno, kreiranje funkcija se sastoji iz tri koraka:
+
++ Dodeljivanje `imena`
++ Definisanje `argumenata`
++ Programiranje `tela` funckije (body) koje se sastoji od koda koji treba da se izvrši
+
+Na primer ukoliko zelimo da napravimo funkciju koja pretvara decimalni zapis ugla u stepenima u radijane, to ćemo učiniti na sledeći način
+
+
+
+```{r}
+step2rad <- function(ang_step){
+  ang_step*pi/180
+}
+
+step2rad(180)
+```
+
+
+Ukoliko zelimo da napravimo funkciju koja pretvara decimalni zapis ugla u zapis step-min-sec to ćemo uraditi na sledeći način:
+
+
+```{r}
+dec2dms <- function(ang){ # ime funkcije je `dec2dms`, a argument `ang`
+  deg <- floor(ang) 
+  minut <- floor((ang-deg)*60)
+  sec <- ((ang-deg)*60-minut)*60
+  return(paste(deg, minut, round(sec, 0), sep = " "))
+}
+
+dec2dms(ang = 35.26589)
+```
+
+```{r}
+dec2dms(45.52658)
+```
+
+
+Primer korišćenja while kontrole toka sa funkcijom:
+
+```{r eval = FALSE}
+
+# Korisnicki definisana funkcija
+readinteger <- function(){
+  n <- readline(prompt="Molim vas, unesite vas broj: ")
+}
+
+response <- as.integer(readinteger())
+
+while (response!=42) {   
+  print("Izvinite, odgovor na pitanje mora biti 42!");
+  response <- as.integer(readinteger());
+}
+
+print(response)
+
+```
+
+
+> <h3>Zadatak</h3>
+> + Ucitati csv fajl koji sadrži koordinate prelomnih tačaka jedne parcele [**parcela.csv**]. 
+> + Podatke učitati tako da se formira objekat klase data.frame.
+> + Preimenovati kolone data.frame tako da odgovaraju nazivima kolona u Gauss-Kruger-ovoj projekciji (ovde naziv kolone X odgovara Easting koordinati, dok naziv kolone Y odgovara Northing koordinati)
+> + Dodati atribut ID - jedinstveni identifikator svake prelomne tačke
+> + Napisati funkciju koja računa broj prelomnih tačaka parcele
+> + Ulaz za funkciju je potrebno da bude data.frame.
+
+
+
+
