@@ -1,0 +1,438 @@
+---
+title: | 
+  | Građevinski fakultet
+  | Odsek za geodeziju i geoinformatiku
+  |
+  | Analiza podataka u R-u
+  |
+subtitle: | 
+  | 
+  | Deskriptivna statistika
+  |
+author: |
+  | Petar Bursać
+  | Milutin Pejović  
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+   html_document:
+     keep_md: true
+     theme: "simplex"
+     highlight: tango
+     toc: true
+     toc_depth: 5
+     toc_float: true
+     fig_caption: yes
+     code_folding: "show"
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, echo = TRUE, collapse = TRUE, fig.align = "center")
+
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  paste0("\n \\", "scriptsize","\n\n", x, "\n\n \\footnotesize")
+})
+
+
+library(tidyverse)
+library(magrittr)
+library(dplyr)
+```
+
+# Ucitavanje podataka
+
+Primer podataka sa kojima ćemo raditi danas, odnose se na cene stanova u Beogradu.
+
+```{r}
+
+# Ucitavanje podataka iz csv fajla:
+
+stanovi <- read.csv(file = "C:/R_projects/Analiza_podataka_u_R_u/Vezbe/data/stanovi.csv", stringsAsFactors = FALSE)
+
+head(stanovi, 10)
+
+```
+
+U prvom koraku, upoznaćemo se podacima, nazivima kolona, dimenzijama, tipovima podataka.
+
+```{r}
+
+# Dimenzije podataka
+dim(stanovi)
+
+# Tipovi podataka
+str(stanovi)
+
+# Nazivi kolona
+names(stanovi)
+
+```
+
+# Analiza frekvencija
+
+Raspon cena stanova:
+
+```{r}
+# Koristimo funkciju range ili min i max vrednosti
+min(stanovi$cena)
+max(stanovi$cena)
+
+range(stanovi$cena)
+
+
+```
+
+## Tabela frekvencija
+
+Jednostavna tabela frekvencija po atributima:
+
+```{r}
+
+# Jednostavan primer
+table(stanovi$klasa)
+
+# ili po broju soba
+
+table(stanovi$broj_soba)
+
+# ili po spratnosti
+
+table(stanovi$sprat)
+
+```
+
+Tabela frekvencije cene stanova sa korakom od 200 eur
+
+```{r}
+
+breaks <- seq(800, 2000, by = 200)
+
+stanovi %<>%
+  dplyr::mutate(raspon_cena = cut(cena, breaks, dig.lab = 4))
+
+table(stanovi$raspon_cena)  
+
+# I da kreiramo data.frame sa rezultatima
+
+f_table_cena <- table(stanovi$raspon_cena) %>% # pozivamo table funkciju za racunanje frekvencije
+  as.data.frame() %>% # kreiramo data.frame
+  dplyr::rename(raspon_cena = Var1) %>% # promena naziva atributa
+  dplyr::mutate("%" = round((Freq/sum(Freq)) * 100, 0)) # kreiramo novi artribut 
+
+f_table_cena
+
+
+```
+
+
+Histogram frekvencije cene stanova
+
+```{r}
+
+hist(x = stanovi$cena, 
+     xlab = "Cena stanova [eur]", 
+     main = "Histogram cene stanova za Grad Beograd")
+
+```
+
+
+Frekvencije stanova po lokaciji
+
+```{r}
+
+f_table_lokacija <- table(stanovi$lokacija) %>% # pozivamo table funkciju za racunanje frekvencije
+  as.data.frame() %>% # kreiramo data.frame
+  dplyr::rename(Lokacija = Var1) %>% # promena naziva atributa
+  dplyr::mutate("%" = round((Freq/sum(Freq)) * 100, 0)) # kreiramo novi artribut 
+
+f_table_lokacija %>% 
+  dplyr::arrange(desc(Freq))
+
+```
+
+Frekvencija po atributu uknjizen
+
+```{r}
+
+f_table_uknjizen <- table(stanovi$uknjizen) %>% # pozivamo table funkciju za racunanje frekvencije
+  as.data.frame() %>% # kreiramo data.frame
+  dplyr::rename(Uknjizen = Var1) %>% # promena naziva atributa
+  dplyr::mutate("%" = round((Freq/sum(Freq)) * 100, 0)) # kreiramo novi artribut 
+
+f_table_uknjizen %>% 
+  dplyr::arrange(desc(Freq))
+
+```
+
+
+## Odnos dve kategorijske promenljive (Contingency tables)
+
+Novogradnja - Parking
+
+```{r}
+
+kon_table <- table(stanovi$novogradnja, stanovi$parking) 
+
+kon_table
+
+mosaicplot(kon_table, 
+           xlab = "Parking", 
+           ylab = "Novogradnja",
+           main = "Odnos Parkinga i Novogradnje za Grad Beograd")
+
+```
+
+
+
+# Mere centralne tendencije
+
+## Raspon
+
+Minimum (min) i maksimum (max) su najjednostavnije mere lokacije naših podataka i daju nam jasan uvid u najmanju i najveću vrednost naših podataka.
+
+Raspon cena stanova:
+
+```{r}
+# Koristimo funkciju range ili min i max vrednosti
+min(stanovi$cena)
+max(stanovi$cena)
+
+range(stanovi$cena)
+
+# ili 20 najmanjih vrednosti
+
+sort(stanovi$cena)[1:20]
+
+# ili 20 najvecih vrednosti
+
+stanovi %>%
+  arrange(desc(cena)) %>%
+  slice(1:20) %>%
+  select(cena)
+  
+```
+
+Raspon vrednosti kvadrature i broja soba stanova:
+
+```{r}
+# Koristimo funkciju range ili min i max vrednosti
+
+range(stanovi$kvadratura) # kvadratura
+
+range(stanovi$broj_soba) # broj soba
+
+```
+
+## Aritmeticka sredina
+
+```{r}
+
+# Aritmeticka sredina cene stanova
+
+mean(stanovi$cena) # koristimo funkciju mean
+
+```
+Primer uticaja odskačućih rezultata na aritmeticku sredinu ako odaberemo 10 vrednosti cena (slučajnim izborom): 
+
+```{r}
+
+n_10 <- sample(stanovi$cena, 10)
+
+# Sa maksimalnim rezultatom:
+mean(n_10)
+
+# Bez maksimalnog rezultata:
+
+n_10_1 <- n_10[n_10 != max(n_10)]
+mean(n_10_1)
+
+```
+
+## Težinska aritmetička sredina
+
+Za razliku od proste aritmetičke sredine gde svi podaci učestvuju jednako, kod težinske aritmetičke sredine svakom podatku se daje određena težina:
+
+```{r}
+
+# Kao tezine mozemo ukljucti da li postoji ili ne lift ili je NA vrednost
+
+unique(stanovi$lift)
+
+stanovi %<>% 
+  dplyr::mutate(lift_tezina = case_when(is.na(lift) ~ 0, 
+                                        lift == "DA" ~ 2,
+                                        lift == "NE" ~ 1))
+
+weighted.mean(stanovi$cena, stanovi$lift_tezina)
+
+```
+
+
+> <h3>Zadatak</h3>
+> + Sracunati težinska aritmetičku sredinu, gde bi se kao težine koristili atributi: uknjižen, parking, centralno grejanje i novogradnja
+> + Rezultate objediniti u jedan data.frame i uporediti sa vrednosti proste aritmetičke sredine
+
+
+## Zasečena aritmetička sredina
+Zasečena aritmetička sredina računa se na identičan način kao i prosta aritmetička sredina, ali ne uključuje određeni broj maksimalnih i minimalnih vrednosti.
+
+```{r}
+
+# 10% zasecena srednja vrednost 
+
+mean(stanovi$cena, trim = 0.1)
+
+```
+
+## Medijana 
+
+```{r}
+
+# Za računanje medijane koristimo funkciju median
+
+median(stanovi$cena)
+
+# Vrednost medijane po grupama cene stanova
+
+mean_median_grupe <- stanovi %>% dplyr::group_by(raspon_cena) %>%
+  dplyr::summarize(cena_mean = mean(cena), 
+                   cena_median = median(cena)) %>%
+  as.data.frame()
+
+mean_median_grupe
+
+```
+
+## Prvi i treći kvartil
+Prvi kvartil deli niz vrednosti tako što je 25% vrednosti manja od prvog kvartila, a 75% veća.
+
+```{r}
+summary(stanovi)
+
+```
+
+
+
+## Modus
+
+Mod je vrednost koja se najčešće pojavljuje u nizu vrednosti.
+
+```{r}
+
+# Funkcija
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+# Modus cena
+getmode(stanovi$cena)
+
+# Modus lokacija
+getmode(stanovi$lokacija)
+
+```
+
+# Mere varijacije
+
+Raspon svih vrednosti (range), Interkvartilni raspon (IQR), Standardna devijacija, Varijansa, Median Absolute Error (MAE), Koeficijent varijacije (CV)
+
+
+```{r}
+
+mere_cena <- stanovi %>%
+  dplyr::summarize(range_cena = max(cena) - min(cena),
+                   iqr_cena = IQR(cena),
+                   var_cena = var(cena),
+                   sd_cena = sd(cena),
+                   mae_cena = mad(cena), 
+                   cv_cena = sd(cena) / mean(cena) * 100) %>%
+  as.data.frame()
+
+
+mere_cena
+
+```
+
+
+# Analiza korelacije
+
+
+## Pearson-ov koeficijent korelacije
+
+Pirsonov koeficijent korelacije kvantifikuje nivo linearne korelacije između dve numeričke (kontinualne) promenljive.
+Može imati vrednosti od -1 do 1.
+
+```{r}
+
+cor(stanovi$cena, stanovi$broj_soba, method = c("pearson"))
+
+cor.test(stanovi$cena, stanovi$broj_soba, method = c("pearson"))
+
+# Vrednost oko nule nam ukazuje na slabu korelaciju!
+
+```
+Vrednost oko nule nam ukazuje na slabu korelaciju!
+
+```{r}
+
+# Cena - kvadratura
+cor.test(stanovi$cena, stanovi$kvadratura, method = c("pearson"))
+
+
+# Cena - stanje
+cor.test(stanovi$cena, stanovi$stanje, method = c("pearson"))
+
+```
+
+## Spearman-ov koeficijent korelacije
+
+Spearman-ov koeficijent kvantifikuje broj uzoraka koju nisu u uređenom redosledu.
+
+```{r warning=FALSE}
+
+cor(stanovi$cena, stanovi$broj_soba, method = c("spearman"))
+cor.test(stanovi$cena, stanovi$broj_soba, method = c("spearman"))
+
+
+# Vrednost oko nule nam ukazuje na slabu korelaciju!
+
+```
+```{r warning=FALSE}
+
+# Cena - kvadratura
+cor.test(stanovi$cena, stanovi$kvadratura, method = c("spearman"))
+
+
+# Cena - stanje
+cor.test(stanovi$cena, stanovi$stanje, method = c("spearman"))
+
+```
+
+
+## Korelacija dve kategorijske promenljive
+
+Hi-kvadrat (eng. chi-squared) test nam kvantifikuje korelaciju dve kategorijske promenljive.
+Primer: parking/novogradnja
+
+Ako postavimo test hipoteze:
+- Ho - Ne postoji veza između promenljive parking i novogradnja
+- Ha - Postoji veza između promenljive parking i novogradnja
+
+
+Za rezultat se dobija p vrednost, koja predstavlja verovatnoću događaja pod nultom hipotezom.
+df predstavlja broj stepeni slobode, dok je X-squared vrednost kvantila X-sqaured raspodele.
+
+
+```{r}
+
+chisq.test(stanovi$parking, stanovi$novogradnja)
+
+```
+
+
+
+
